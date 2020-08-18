@@ -49,9 +49,19 @@ IO复用：IO复用与非阻塞IO有点像，因为非阻塞IO会花费大量的
 
 ![异步IO](pic/异步IO.png)
 
-###epoll原理
+###select，poll，epoll
 
+非阻塞IO，进程会时刻轮询来达到处理多个流的目的，但是如果所有的流中都没有数据，那么就会白白的浪费CPU，为了避免CPU空转，就引进了一个代理select，它可以同时观察许多流的IO事件，进程会阻塞在select，当有一个或者多个流有IO事件时，select就会醒来，把所有的IO都轮询一遍，进行IO操作。使用select，事件复杂度就是O(n)，32位默认连接数是1024，64位默认是2048。
 
+poll和select类似，将用户传入的数组拷贝到内核空间，然后查询每个fd对应的设备状态。poll没有最大连接数的限制，因为它是基于链表来存储的。它的缺点是大量的数组从用户到内核之间复制，不管这样有没有意义。
+
+epoll通过epoll_create,epoll_ctl和epoll_wait三个函数实现的。
+
+epoll_create是在内核创建一个epoll相关的列结构，并且将fd返回用户态。
+
+epoll_ctl是将fd添加/删除在epoll_epfd中，epoll_event是用户态和内核态交互的结构，定义了用户态的事件类型和数据载体epoll_data。也就是告诉内核哪些fd需要做哪些操作。
+
+epoll_wait是阻塞等待内核返回的可读写事件，epfd还是epoll_create的返回值，events是结构体指针存储epoll_event,就是讲所有待处理的epoll_event结构存储下来，maxevents告诉内核本次返回的最大fd数量，这个和events指向的数组是相关的。也就是调用epoll_wati等待内核反馈的可读写事件并处理。
 
 ### Java IO
 
