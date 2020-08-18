@@ -27,27 +27,31 @@ Unix下的五种IO模型：
 
 阻塞IO：一个进程recvfrom开始IO之后，它的系统调用直到数据包到达且被复制到用户空间或者中间发生了错误才会返回。进程从调用recvfrom开始到它返回成功这整个过程都是阻塞的。如图：
 
-![阻塞IO](D:\studyNote\pic\阻塞IO.png)
+![阻塞IO](pic\阻塞IO.png)
 
 
 
-非阻塞IO：从recvfrom调用开始，内核如果无数据报准备（缓存没有数据），就会返回一个EWOULDBLOCK错误，然后recvfrom一直检查有无数据到来，
+非阻塞IO：从recvfrom调用开始，内核如果无数据报准备（缓存没有数据），就会返回一个EWOULDBLOCK错误，然后recvfrom一直检查有无数据到来。(一般不使用)
 
-![非阻塞IO](D:\studyNote\pic\非阻塞IO.png)
+![非阻塞IO](pic\非阻塞IO.png)
 
 
 
 IO复用：IO复用与非阻塞IO有点像，因为非阻塞IO会花费大量的CPU资源去轮询，而且可能有很多的任务同时进行，人们就想到了循环查询多个任务的完成状态，有一个任务完成，就去处理这个任务。Unix下的select，poll和epoll就是做这个事情的，netty就是基于epoll实现的。
 
-![IO复用](D:\studyNote\pic\IO复用.png)
+![IO复用](pic\IO复用.png)
 
 信号驱动IO：首先允许开启套接口信号驱动IO功能，通过系统调用sigaction执行一个函数，调用之后立即返回，进程继续执行，当内核中数据报准备好之后，会为该进程生成一个SIGIO信号，告诉进程准备好了，可以来读取数据了。
 
-![信号驱动IO](D:\studyNote\pic\信号驱动IO.png)
+![信号驱动IO](pic\信号驱动IO.png)
 
 异步IO：告知内核我要进行IO操作，并让内核在整个操作完成之后通知我们，在内核准备和复制数据报期间，进程继续执行。这个和上面的信号驱动相比主要区别是，信号驱动告诉进程什么时候可以进行IO操作，而异步IO是告诉进程IO操作何时完成的。
 
-![异步IO](D:\studyNote\pic\异步IO.png)
+![异步IO](pic\异步IO.png)
+
+###epoll原理
+
+
 
 ### Java IO
 

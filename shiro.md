@@ -6,9 +6,7 @@ Apache Shiro 是 Java 的一个安全框架。shiro可以帮助我们完成：�
 
 ####shiro工作原理
 
-![2](C:\Users\zhangruijsqt\Desktop\day\pic\2.png)
-
-
+![2](pic\2.png)
 
 
 
@@ -22,7 +20,7 @@ Realm: 域，相当于DateSource，SecurityManager从Realm获得用户信息来�
 
 shiro身份验证通过用户提供的principals(身份)和credentials(证明)来验证用户的身份。
 
-![身份验证](C:\Users\zhangruijsqt\Desktop\day\pic\\身份验证.png)
+![身份验证](pic\\身份验证.png)
 
 身份验证步骤：
 
@@ -48,7 +46,7 @@ Role：角色，角色代表了权限的集合，一般来说我们会赋予用�
 
 
 
-![授权流程](C:\Users\zhangruijsqt\Desktop\day\pic\\授权流程.png)
+![授权流程](pic\\授权流程.png)
 
 
 
