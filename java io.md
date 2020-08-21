@@ -55,13 +55,15 @@ IO复用：IO复用与非阻塞IO有点像，因为非阻塞IO会花费大量的
 
 poll和select类似，将用户传入的数组拷贝到内核空间，然后查询每个fd对应的设备状态。poll没有最大连接数的限制，因为它是基于链表来存储的。它的缺点是大量的数组从用户到内核之间复制，不管这样有没有意义。
 
-epoll通过epoll_create,epoll_ctl和epoll_wait三个函数实现的。
+epoll则是在select和poll基础上进行了优化，没有最大连接数限制，只有某个IO流有数据，这个IO流就会callback调用它的进程，这样就不用进行轮询，时间复杂度就是O(1).
 
-epoll_create是在内核创建一个epoll相关的列结构，并且将fd返回用户态。
+epoll是通过epoll_create,epoll_ctl和epoll_wait三个接口实现的。
 
-epoll_ctl是将fd添加/删除在epoll_epfd中，epoll_event是用户态和内核态交互的结构，定义了用户态的事件类型和数据载体epoll_data。也就是告诉内核哪些fd需要做哪些操作。
+**epoll_create**是在内核创建一个epoll相关的列结构，并且将fd返回用户态。
 
-epoll_wait是阻塞等待内核返回的可读写事件，epfd还是epoll_create的返回值，events是结构体指针存储epoll_event,就是讲所有待处理的epoll_event结构存储下来，maxevents告诉内核本次返回的最大fd数量，这个和events指向的数组是相关的。也就是调用epoll_wati等待内核反馈的可读写事件并处理。
+**epoll_ctl**是将fd添加/删除在epoll_epfd中，epoll_event是用户态和内核态交互的结构，定义了用户态的事件类型和数据载体epoll_data。也就是告诉内核哪些fd需要做哪些操作。
+
+**epoll_wait**是阻塞等待内核返回的可读写事件，epfd还是epoll_create的返回值，events是结构体指针存储epoll_event,就是讲所有待处理的epoll_event结构存储下来，maxevents告诉内核本次返回的最大fd数量，这个和events指向的数组是相关的。也就是调用epoll_wati等待内核反馈的可读写事件并处理。
 
 ### Java IO
 
@@ -77,3 +79,28 @@ Java IO包含了InputStream，Reader，OutputStream，Writer以及它们的子�
 
 ![QQ截图20141020174145](pic/QQ截图20141020174145.png)
 
+### Java NIO
+
+NIO是(Non-block I/O),就是非阻塞IO。它提供了两种新的套接字ScoketChannel和ServerSocketChannel，这两支持阻塞和非阻塞模式，阻塞编码简单，但是性能和可靠性不好，非阻塞模式相反。
+
+核心类库：
+
+1. 缓冲区Buffer
+
+   Buffer是一个对象，实质上是一个数组，提供了对数据的结构化访问和维护读写位置等信息。在NIO库中，所有数据处理都是通过缓冲区的(W/R)。每一种Java基本数据类型都对应一种缓冲区，最常用的就是ByteBuffer缓冲区。
+
+   - ByteBuffer：字节缓冲区
+   - CharBuffer：字符缓冲区
+   - ShortBuffer：短整型缓冲区
+   - IntBuffer：整型缓冲区
+   - LongBuffer：长整型缓冲区
+   - FloatBuffer：浮点型缓冲区
+   - DoubleBuffer：双精度缓冲区
+
+2. 通道Channel
+
+   Channel是一个通道，网络数据通过Channel读取和写入。它与流的功能类似，但是它是双向的，可以读、写或者二者同时进行。
+
+3. 多路复用器Selector
+
+   
