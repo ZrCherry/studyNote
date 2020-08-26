@@ -103,4 +103,128 @@ NIO是(Non-block I/O),就是非阻塞IO。它提供了两种新的套接字Scoke
 
 3. 多路复用器Selector
 
-   
+    选择器用于监听多个通道的事件（比如：链接打开，数据到达）。因此，单个线程可以监听多个数据通道。 
+
+##### NIO服务端序列图
+
+![nio服务端序列图](pic/nio服务端序列图.png)
+
+```java
+// 1.打开ServerSocketChannel
+ServerSocketChannel acceptSvr = ServerSocketChannel.open();
+// 2.绑定监听地址InetSocketAddress并设置非阻塞模式
+acceptorSvr.socket().bind(new InetSocketAddress(InetAddress.getByName(“IP”), port));
+acceptorSvr.configureBlocking(false);
+// 3.创建Selector，启动线程
+lector selector = Selector.open();
+New Thread(new ReactorTask()).start();
+// 4.将ServerSocketChannel注册到Selector，开启监听ACCEPT事件
+SelectionKey key = acceptorSvr.register( selector, SelectionKey.OP_ACCEPT, ioHandler);
+// 5.Selector轮询就绪的Key
+Set selectedKeys = selector.selectedKeys();
+Iterator it = selectedKeys.iterator();
+while (it.hasNext()) {
+     SelectionKey key = (SelectionKey)it.next();
+     // ... deal with I/O event ...
+}
+// 6.handleAccept处理新接的客户端接入，建立链接
+SocketChannel channel = svrChannel.accept();
+// 7.设置客户端为非阻塞模式
+channel.configureBlocking(false);
+channel.socket().setReuseAddress(true);
+// 8.想Selector注册读监听
+SelectionKey key = socketChannel.register( selector, SelectionKey.OP_READ, ioHandler);
+// 9.异步读取消息到缓冲区
+int  readNumber =  channel.read(receivedBuffer);
+// 10.decode请求消息
+Object message = null;
+while(buffer.hasRemain()) {
+    byteBuffer.mark();
+    Object message = decode(byteBuffer);
+    if (message == null) {
+        byteBuffer.reset();
+        break;
+    }
+    messageList.add(message );
+}
+if (!byteBuffer.hasRemain())
+    byteBuffer.clear();
+else
+    byteBuffer.compact();
+if (messageList != null & !messageList.isEmpty()) {
+    for(Object messageE : messageList)
+        handlerTask(messageE);
+}
+// 11.将POJO对象encode成ByteBuffer，调用异步write接口，发送给客户端
+socketChannel.write(buffer);
+```
+
+
+
+##### NIO客户端序列图
+
+![nio客户端序列图](pic/nio客户端序列图.png)
+
+
+
+```java
+// 1.打开SocketChannel
+SocketChannel clientChannel = SocketChannel.open();
+// 2.设置clientChannel为非阻塞模式，设置TCP参数
+clientChannel.configureBlocking(false);
+socket.setReuseAddress(true);
+socket.setReceiveBufferSize(BUFFER_SIZE);
+socket.setSendBufferSize(BUFFER_SIZE);
+// 3.异步连接服务端
+boolean connected = clientChannel.connect(new InetSocketAddress(“ip”,port));
+// 4.判断是否连接成功,成功跳到10，否则跳到5
+if(connected){
+    clientChannel.register( selector, SelectionKey.OP_READ, ioHandler);
+}else{
+    clientChannel.register( selector, SelectionKey.OP_CONNECT, ioHandler);
+}
+// 5.向reactor线程的多路复用器注册时间OP_CONNECT
+clientChannel.register( selector, SelectionKey.OP_CONNECT, ioHandler);
+// 6.创建select，启动线程
+Selector selector = Selector.open();
+New Thread(new ReactorTask()).start();
+// 7.Selector轮询准备就绪的Key
+Set selectedKeys = selector.selectedKeys();
+Iterator it = selectedKeys.iterator();
+while (it.hasNext()) {
+	if (key.isConnectable())
+  	//handlerConnect();
+}
+// 8.handerConnect
+// 9.判断连接是否完成，完成执行10
+if (channel.finishConnect())
+    registerRead();
+// 10.向多路复用器注册读事件
+clientChannel.register(selector, SelectionKey.OP_READ, ioHandler);
+// 11.异步读请求读取数据到ByteBuffer
+int  readNumber =  channel.read(receivedBuffer);
+// 12.decode请求消息
+Object message = null;
+while(buffer.hasRemain()) {
+    byteBuffer.mark();
+    Object message = decode(byteBuffer);
+    if (message == null) {
+        byteBuffer.reset();
+        break;
+    }
+    messageList.add(message );
+}
+if (!byteBuffer.hasRemain())
+    byteBuffer.clear();
+else
+    byteBuffer.compact();
+if (messageList != null & !messageList.isEmpty()) {
+    for(Object messageE : messageList)
+        handlerTask(messageE);
+}
+// 13.异步写ByteBuffer到socketChannel
+socketChannel.write(buffer);
+```
+
+
+
